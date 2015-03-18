@@ -1,6 +1,5 @@
-
-
 module.exports = (grunt) ->
+
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
 
@@ -8,7 +7,7 @@ module.exports = (grunt) ->
       framework:
         files: [
           "source/*.js",
-          "!source/_combined.js"
+          "!source/concatinated.js"
         ]
         tasks: [
           "concat:framework",
@@ -18,24 +17,26 @@ module.exports = (grunt) ->
 
     concat:
       framework:
+        dest: "source/concatinated.js"
         src: [
-          "source/deps.js"
-          "source/core.js"
-          "source/fonts.js"
-          "source/store.js"
-          "source/view.js"
+          "source/Dependencies.js"
+          "source/Base.js"
+          "source/Base.Class.js"
+          "source/Base.View.js"
+          "source/Base.Store.js"
+          "source/Base.Font.js"
         ]
-        dest: "source/_combined.js"
 
     babel:
       options:
         compact: false
       framework:
-        src: "source/_combined.js"
+        src: "source/concatinated.js"
         dest: "build/base.js"
 
     clean:
-      framework: "source/_combined.js"
+      build: "build/"
+      framework: "source/concatinated.js"
 
     uglify:
       framework:
@@ -44,8 +45,13 @@ module.exports = (grunt) ->
 
   require("load-grunt-tasks") grunt
 
-  grunt.registerTask "default", [ "watch" ]
+  grunt.registerTask "default", [
+    "build"
+    "watch"
+  ]
+
   grunt.registerTask "build", [
+    "clean:build",
     "concat:framework",
     "babel:framework",
     "clean:framework",
