@@ -1,12 +1,12 @@
 let Base = class {
 
-  // constructor
-  // Responsible for setting up Base class
-  //
-  // configuration | Object
-  //   name    | String  | Name of App
-  //   version | Integer | Version of App
-  //
+  /**
+   * Constructor for setting up Base instance
+   * @param    *  {Object}   configuration  Instance configuration
+   *              {String}   ^.name         Name of application
+   *              {Integer}  ^.version      Version of application
+   * @returns     {Object}                  The class instance
+   */
   constructor(configuration) {
     // Version of Base Framework
     this.BASE_VERSION = "0.0.1";
@@ -23,15 +23,14 @@ let Base = class {
 
 Base.Class = class {
 
-  // constructor
-  // Responsible for setting up BaseClass class
-  //
-  // configuration | Object
-  //   element    | String   | Selector passed to jQuery object, used in Views
-  //   events     | Object   | Events for delegation to the event emitter
-  //   initialize | function | Init method called after class has been super'd
-  //   _          | any      | Other members/methods to be bound to the instance
-  //
+  /**
+   * Constructor for setting up Base.Class instance
+   * @param    *  {Object}    configuration  Class configuration
+   *              {Object}    ^.events       Events for delegation to the event emitter
+   *              {Function}  ^.initialize   Init method called after class has been super'd
+   *              {Any}       ^.*            Other members/methods to be bound to the instance
+   * @returns     {Object}                   The class instance
+   */
   constructor(configuration) {
     // Add all configuration options to instance
     if (typeof configuration === "object") {
@@ -42,6 +41,7 @@ Base.Class = class {
 
     // If this.element isn't set then we need to create a jQuery
     // object that can act as an event emitter
+    // this.element should be set in a View instance
     if (this.element == null) {
       this.emitter = $({});
     // But if it is set, add it to a jQuery object so it can be
@@ -69,11 +69,11 @@ Base.Class = class {
       this.initialize.call(this);
   }
 
-  // addEvent
-  // Handles parsing and delegating of incoming events
-  //
-  // called | String | Event and optional child selector to parse and create new event with
-  //
+  /**
+   * Handles parsing and delegating of incoming events
+   * @param    *  {String}  caller  Event and optional child selector to create new event with
+   * @returns     {Void}
+   */
   addEvent(caller) {
     let parameters = {};
     let callback = this.events[caller];
@@ -108,15 +108,15 @@ Base.Class = class {
       this.on(parameters);
   }
 
-  // on
-  // Assigns events to the instance's event emitter using jQuery's on()
-  //
-  // paremeters | Object
-  // * name     | String   | Event to assign to the emitter
-  //   selector | String   | Child selector, if emitter is an element
-  //   assignee | Object   | Instance to call method from
-  // * callback | Function | Callback to be executed when event is emitted
-  //
+  /**
+   * Assigns events to the instance's event emitter using jQuery's on()
+   * @param    *  {Object}    parameters  Event parameters
+   *           *  {String}    ^.name      Event to assign to the emitter
+   *              {String}    ^.selector  Child selector, if emitter is an element
+   *              {Object}    ^.assignee  Instance to call method from
+   *           *  {Function}  ^.callback  Callback to be executed when event is emitted
+   * @returns     {Void}
+   */
   on(parameters) {
     console.log(parameters);
     // Determine which emitter to assign event to
@@ -132,15 +132,15 @@ Base.Class = class {
     });
   }
 
-  // off
-  // Removes events from the instance's event emitter using jQuery's off()
-  //
-  // paremeters | Object
-  // * name     | String   | Event to remove from the emitter
-  //   selector | String   | Child selector, if emitter was an element
-  //   assignee | String   | Instance to call method from
-  // * callback | Function | Callback executed when event was emitted
-  //
+  /**
+   * Removes events from the instance's event emitter using jQuery's off()
+   * @param    *  {Object}    parameters  Event parameters
+   *           *  {String}    ^.name      Event to remove from the emitter
+   *              {String}    ^.selector  Child selector, if emitter was an element
+   *              {Object}    ^.assignee  Instance method was called from
+   *           *  {Function}  ^.callback  Callback executed when event was emitted
+   * @returns     {Void}
+   */
   off(parameters) {
     // Determine which emitter to remove event from
     let emitter = this.element || this.emitter;
@@ -155,6 +155,13 @@ Base.Class = class {
     });
   }
 
+
+  /**
+   * Triggers an event from the instance's event emitter
+   * @param    *  {Object}  eventName        Name of event to trigger
+   * @param       {Array}   extraParameters  Any extra parameters to send from the trigger
+   * @returns     {Void}
+   */
   trigger(eventName, extraParameters) {
     // Determine which emitter to trigger event on
     let emitter = this.element || this.emitter;

@@ -1,14 +1,13 @@
 Base.View = class extends Base.Class {
 
-  // constructor
-  // Responsible for setting up BaseView class
-  //
-  // configuration | Object
-  // * element    | String   | Selector passed to jQuery object
-  //   id         | String   | Identifier assigned to the view; if left
-  //                           undefined, will default to index position
-  //   _          | any      | Other members/methods to be bound to the instance
-  //
+  /**
+   * Constructor for setting up Base.View instance
+   * @super       Base.Class
+   * @param    *  {Object}         configuration  Instance configuration
+   *           *  {String|Object}  ^.element      Selector passed to jQuery instance
+   *              {String}         ^.id           Identifier assigned to the view; if left
+   *                                              undefined, will default to index position
+   */
   constructor(configuration) {
     // Super BaseClass constructor
     super.constructor(configuration);
@@ -28,15 +27,14 @@ Base.View = class extends Base.Class {
     Base.views[this.id] = this;
   }
 
-  // destroy
-  // Destroys the current View instance
-  //
-  // parameters | Object
-  //   element    | Boolean | Should destroy also remove the element?
-  //   transition | String  | Class name to be applied for when a transition is
-  //                          desired before removing an element.
-  //                          Requires element parameter to be true.
-  //
+  /**
+   * Destroys the current View instance
+   * @param       {Object}   parameters    Parameters to destroy view
+   *              {Boolean}  ^.element     Should destroy also remove the element?
+   *              {String}   ^.transition  Class name to be applied for when a transition is
+   *                                       desired before removing an element.
+   *                                       Requires element parameter to be true.
+   */
   destroy(parameters) {
     let
         // removeView
@@ -105,26 +103,22 @@ Base.View = class extends Base.Class {
 // to all views on the page
 Base.views = {};
 
-// addView
-// Extends the BaseView class as a method of the Base class
-// Returns the BaseView's instance
-//
-// configuration | Object
-//   @see BaseView constructor
-//
+/**
+ * Extends the Base.View class as a method of the Base class
+ * @param    *  {Object}   configuration  @see Base.View.constructor
+ * @returns     {Object}                  The Base.View instance
+ */
 Base.prototype.addView = function(configuration) {
   return new Base.View(configuration);
 }
 
-// destroyView
-// Executes the destroy method of a View's instance, by the View's ID
-// Returns the ID of the View destroyed
-//
-// parameters | String OR Object
-// -> String: Identifier of the View to destroy
-// -> Object: @see BaseView destroy
-//
-Base.prototype.destroyView = function(parameters) {
+/**
+ * Executes the destroy method of a Base.View instance, by View ID
+ * @param    *  {String|Object}  parameters
+ *              {String}                     Identifier of the View to destroy
+ *              {Object}                     @see Base.View.constructor
+ * @returns     {String}                     ID of the View destroyed
+ */Base.prototype.destroyView = function(parameters) {
   Base.views[parameters.id || parameters].destroy(parameters);
   return parameters.id || parameters;
 }
