@@ -9,12 +9,18 @@ Base.Class = class {
    * @returns     {Object}                   The class instance
    */
   constructor(configuration) {
+    // Parameter check
+    if (typeof configuration !== "object")
+      console.error("Base.Class.constructor `configuration` is required and must be of type Object");
+    if (configuration.events != null && typeof configuration.events !== "object")
+      console.error("Base.Class.constructor `configuration.events` must be of type Object");
+    if (configuration.initialize != null && typeof configuration.initialize !== "function")
+      console.error("Base.Class.constructor `configuration.initialize` must be of type Function");
+
     // Add all configuration options to instance
-    if (typeof configuration === "object") {
-      Object.keys(configuration).forEach(key => {
-        this[key] = configuration[key];
-      });
-    };
+    Object.keys(configuration).forEach(key => {
+      this[key] = configuration[key];
+    });
 
     // If this.element isn't set then we need to create a jQuery
     // object that can act as an event emitter
@@ -29,11 +35,9 @@ Base.Class = class {
 
     // Use the this.events object to parse delegate events to
     // the event emitter
-    if (typeof this.events === "object") {
-      Object.keys(this.events).forEach(caller => {
-        this.addEvent(caller);
-      });
-    }
+    Object.keys(this.events).forEach(caller => {
+      this.addEvent(caller);
+    });
 
     // At the very least, if no events were added, create an empty events member
     // so we can create new ones in the future
@@ -52,6 +56,10 @@ Base.Class = class {
    * @returns     {Void}
    */
   addEvent(caller) {
+    // Parameter check
+    if (typeof caller !== "string")
+      console.error("Base.Class.addEvent `caller` is required and must be of type String");
+
     let parameters = {};
     let callback = this.events[caller];
     let assignee = callback.substr(callback.indexOf(' ') + 1);
@@ -87,15 +95,26 @@ Base.Class = class {
 
   /**
    * Assigns events to the instance's event emitter using jQuery's on()
-   * @param    *  {Object}    parameters  Event parameters
-   *           *  {String}    ^.name      Event to assign to the emitter
-   *              {String}    ^.selector  Child selector, if emitter is an element
-   *              {Object}    ^.assignee  Instance to call method from
-   *           *  {Function}  ^.callback  Callback to be executed when event is emitted
+   * @param    *  {Object}  parameters  Event parameters
+   *           *  {String}  ^.name      Event to assign to the emitter
+   *              {String}  ^.selector  Child selector, if emitter is an element
+   *              {Object}  ^.assignee  Instance to call method from
+   *           *  {String}  ^.callback  Callback to be executed when event is emitted
    * @returns     {Void}
    */
   on(parameters) {
-    console.log(parameters);
+    // Parameter check
+    if (typeof parameters !== "object")
+      console.error("Base.Class.on `parameters` is required and must be of type Object");
+    if (typeof parameters.name !== "string")
+      console.error("Base.Class.on `parameters.name` is required and must be of type String");
+    if (parameters.selector != null && typeof parameters.selector !== "string")
+      console.error("Base.Class.on `parameters.selector` must be of type String");
+    if (parameters.assignee != null && typeof parameters.assignee !== "object")
+      console.error("Base.Class.on `parameters.assignee` must be of type Object");
+    if (typeof parameters.callback !== "string")
+      console.error("Base.Class.on `parameters.callback` is required and must be of type String");
+
     // Determine which emitter to assign event to
     let emitter = this.element || this.emitter;
 
@@ -119,6 +138,18 @@ Base.Class = class {
    * @returns     {Void}
    */
   off(parameters) {
+    // Parameter check
+    if (typeof parameters !== "object")
+      console.error("Base.Class.off `parameters` is required and must be of type Object");
+    if (typeof parameters.name !== "string")
+      console.error("Base.Class.off `parameters.name` is required and must be of type String");
+    if (parameters.selector != null && typeof parameters.selector !== "string")
+      console.error("Base.Class.off `parameters.selector` must be of type String");
+    if (parameters.assignee != null && typeof parameters.assignee !== "object")
+      console.error("Base.Class.off `parameters.assignee` must be of type Object");
+    if (typeof parameters.callback !== "string")
+      console.error("Base.Class.off `parameters.callback` is required and must be of type String");
+
     // Determine which emitter to remove event from
     let emitter = this.element || this.emitter;
 
@@ -135,11 +166,17 @@ Base.Class = class {
 
   /**
    * Triggers an event from the instance's event emitter
-   * @param    *  {Object}  eventName        Name of event to trigger
+   * @param    *  {String}  eventName        Name of event to trigger
    * @param       {Array}   extraParameters  Any extra parameters to send from the trigger
    * @returns     {Void}
    */
   trigger(eventName, extraParameters) {
+    // Parameter check
+    if (typeof eventName !== "string")
+      console.error("Base.Class.trigger `eventName` is required and must be of type String");
+    if (extraParameters != null && typeof extraParameters !== "object")
+      console.error("Base.Class.trigger `extraParameters` must be of type Object");
+
     // Determine which emitter to trigger event on
     let emitter = this.element || this.emitter;
 

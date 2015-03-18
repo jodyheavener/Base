@@ -5,16 +5,20 @@ Base.View = class extends Base.Class {
    * @super       Base.Class
    * @param    *  {Object}         configuration  Instance configuration
    *           *  {String|Object}  ^.element      Selector passed to jQuery instance
-   *              {String}         ^.id           Identifier assigned to the view; if left
+   *              {String|Number}  ^.id           Identifier assigned to the view; if left
    *                                              undefined, will default to index position
    */
   constructor(configuration) {
+    // Parameter check
+    if (typeof configuration !== "object")
+      console.error("Base.View.constructor `configuration` is required and must be of type Object");
+    if (typeof configuration.element !== "string" && typeof configuration.element !== "object")
+      console.error("Base.View.constructor `configuration.element` must be of type String or Object");
+    if (configuration.id != null && typeof configuration.id !== "string" && typeof configuration.id !== "number")
+      console.error("Base.View.constructor `configuration.id` must be of type String or Number");
+
     // Super BaseClass constructor
     super.constructor(configuration);
-
-    // If the View doesn't have an element, bail!
-    if (this.element == null)
-      return console.error("`element` property is required for View instance.");
 
     // Set up the View's indentifier; if one was not set, use the View's
     // index position in the Base.views object
@@ -29,13 +33,21 @@ Base.View = class extends Base.Class {
 
   /**
    * Destroys the current View instance
-   * @param       {Object}   parameters    Parameters to destroy view
-   *              {Boolean}  ^.element     Should destroy also remove the element?
-   *              {String}   ^.transition  Class name to be applied for when a transition is
-   *                                       desired before removing an element.
-   *                                       Requires element parameter to be true.
+   * @param       {Object|String}  parameters    Parameters to destroy view
+   *              {Boolean}        ^.element     Should destroy also remove the element?
+   *              {String}         ^.transition  Class name to be applied for when a transition is
+   *                                             desired before removing an element.
+   *                                             Requires ^.element parameter to be true.
    */
   destroy(parameters) {
+    // Parameter check
+    if (parameters != null && typeof parameters !== "object" && typeof parameters !== "string")
+      console.error("Base.View.destroy `parameters` must be of type Object");
+    if (parameters.element != null && typeof parameters.element !== "boolean")
+      console.error("Base.View.destroy `parameters.element` must be of type Boolean");
+    if (parameters.transition != null && typeof parameters.transition !== "String")
+      console.error("Base.View.destroy `parameters.transition` must be of type String");
+
     let
         // removeView
         // Conditionally removes the data-view attribute from the View's element
@@ -72,7 +84,7 @@ Base.View = class extends Base.Class {
       // to the View's element (with the assumption it will trigger a
       // transition), and then wait for a transitionend event to fire before
       // removing the View's element and the View
-      if (typeof parameters.transition === "string") {
+      if (parameters.transition) {
         // Set up a transitionend event handler
         this.on({
           name: "transitionend",
@@ -118,7 +130,8 @@ Base.prototype.addView = function(configuration) {
  *              {String}                     Identifier of the View to destroy
  *              {Object}                     @see Base.View.constructor
  * @returns     {String}                     ID of the View destroyed
- */Base.prototype.destroyView = function(parameters) {
+ */
+Base.prototype.destroyView = function(parameters) {
   Base.views[parameters.id || parameters].destroy(parameters);
   return parameters.id || parameters;
 }
