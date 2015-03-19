@@ -68,8 +68,10 @@ Base.Class = class {
     // Set parameter.callback as text node before first space in case it does
     parameters.callback = callback.substr(0, callback.indexOf(' '));
 
+    if (parameters.callback.length && typeof this[assignee] !== "object") {
+      console.error("Base.Class.addEvent \"" + caller + "\" event has unknown assignee \"" + assignee + "\".");
     // If it does, add it as a parameter.assignee
-    if (parameters.callback.length && typeof this[assignee] === "object") {
+    } else if (parameters.callback.length && typeof this[assignee] === "object") {
       parameters.assignee = this[assignee];
     // If not, reset parameter.callback to full callback value
     } else {
@@ -89,7 +91,7 @@ Base.Class = class {
     }
 
     // Send the event and its parameters to the on() method
-    if (parameters.assignee || typeof parameters.callback === "function")
+    if (parameters.assignee || typeof this[parameters.callback] === "function")
       this.on(parameters);
   }
 
