@@ -24,7 +24,6 @@ module.exports = (grunt) ->
           "source/Base.Class.js"
           "source/Base.View.js"
           "source/Base.Store.js"
-          "source/Base.Font.js"
         ]
       build:
         dest: "build/base-es6.js"
@@ -34,7 +33,6 @@ module.exports = (grunt) ->
           "source/Base.Class.js"
           "source/Base.View.js"
           "source/Base.Store.js"
-          "source/Base.Font.js"
         ]
       nodeps:
         dest: "build/base-es6.js"
@@ -43,7 +41,6 @@ module.exports = (grunt) ->
           "source/Base.Class.js"
           "source/Base.View.js"
           "source/Base.Store.js"
-          "source/Base.Font.js"
         ]
 
     babel:
