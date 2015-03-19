@@ -26,6 +26,25 @@ module.exports = (grunt) ->
           "source/Base.Store.js"
           "source/Base.Font.js"
         ]
+      build:
+        dest: "build/base-es6.js"
+        src: [
+          "source/Dependencies.js"
+          "source/Base.js"
+          "source/Base.Class.js"
+          "source/Base.View.js"
+          "source/Base.Store.js"
+          "source/Base.Font.js"
+        ]
+      nodeps:
+        dest: "build/base-es6.js"
+        src: [
+          "source/Base.js"
+          "source/Base.Class.js"
+          "source/Base.View.js"
+          "source/Base.Store.js"
+          "source/Base.Font.js"
+        ]
 
     babel:
       options:
@@ -46,14 +65,24 @@ module.exports = (grunt) ->
   require("load-grunt-tasks") grunt
 
   grunt.registerTask "default", [
-    "build"
+    "dist"
     "watch"
   ]
 
-  grunt.registerTask "build", [
+  grunt.registerTask "dist", [
     "clean:build",
     "concat:framework",
     "babel:framework",
     "clean:framework",
     "uglify:framework"
+  ]
+
+  grunt.registerTask "build-es6", [
+    "clean:build",
+    "concat:build",
+  ]
+
+  grunt.registerTask "build-es6-nodeps", [
+    "clean:build",
+    "concat:nodeps",
   ]
