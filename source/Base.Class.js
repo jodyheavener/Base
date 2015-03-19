@@ -62,11 +62,11 @@ Base.Class = class {
 
     let parameters = {};
     let callback = this.events[caller];
-    let assignee = callback.substr(callback.indexOf(' ') + 1);
+    let assignee = callback.substr(callback.indexOf(" ") + 1);
 
     // Check if the callback contains a callback
     // Set parameter.callback as text node before first space in case it does
-    parameters.callback = callback.substr(0, callback.indexOf(' '));
+    parameters.callback = callback.substr(0, callback.indexOf(" "));
 
     if (parameters.callback.length && typeof this[assignee] !== "object") {
       console.error("Base.Class.addEvent \"" + caller + "\" event has unknown assignee \"" + assignee + "\".");
@@ -80,11 +80,11 @@ Base.Class = class {
 
     // Check if the caller contains a selector
     // Set parameter.name as text node before first space in case it does
-    parameters.name = caller.substr(0, caller.indexOf(' '));
+    parameters.name = caller.substr(0, caller.indexOf(" "));
 
     // If it does, add it as a parameter.selector
     if (parameters.name.length && this.element != null) {
-      parameters.selector = caller.substr(caller.indexOf(' ') + 1);
+      parameters.selector = caller.substr(caller.indexOf(" ") + 1);
     // If not, reset parameter.name to full caller value
     } else {
       parameters.name = caller;
