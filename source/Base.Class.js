@@ -35,9 +35,11 @@ Base.Class = class {
 
     // Use the this.events object to parse delegate events to
     // the event emitter
-    Object.keys(this.events).forEach(caller => {
-      this.addEvent(caller);
-    });
+    if (this.events != null) {
+      Object.keys(this.events).forEach(caller => {
+        this.addEvent(caller);
+      });
+    }
 
     // At the very least, if no events were added, create an empty events member
     // so we can create new ones in the future
