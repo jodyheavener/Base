@@ -20,3 +20,25 @@ let Base = class {
   }
 
 }
+
+/**
+ * Underscore will contain Base helper methods
+ */
+Base._ = {};
+
+/**
+ * Traverses an object based on a string parsed in to a proper path
+ * @param    *  {Object}  parameters  Method parameters
+ *           *  {Object}  ^.target    Object to traverse
+ *           *  {String}  ^.route     String route to parse
+ * @returns     {Object}              The value of the object path
+ */
+Base._.dataRoute = function(parameters) {
+  let route = "";
+  let tokens = parameters.route.split(" ");
+  tokens.forEach(token => {
+    route = route + "[\"" + token + "\"]";
+  });
+  route = route.replace(/:([0-9])"/g, "\"][$1");
+  return eval("parameters.target" + route);
+}
