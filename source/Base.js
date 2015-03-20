@@ -24,7 +24,7 @@ let Base = class {
 /**
  * Underscore will contain Base helper methods
  */
-Base._ = {};
+Base.prototype._ = {};
 
 /**
  * Traverses an object based on a string parsed in to a proper path
@@ -33,7 +33,7 @@ Base._ = {};
  *           *  {String}  ^.route     String route to parse
  * @returns     {Object}              The value of the object path
  */
-Base._.dataRoute = function(parameters) {
+Base.prototype._.dataRoute = function(parameters) {
   let route = "";
   let tokens = parameters.route.split(" ");
   tokens.forEach(token => {
