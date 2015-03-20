@@ -23,6 +23,7 @@ module.exports = (grunt) ->
           "source/Base.js"
           "source/Base.Class.js"
           "source/Base.View.js"
+          "source/Base.Set.js"
           "source/Base.Store.js"
         ]
       build:
@@ -32,6 +33,7 @@ module.exports = (grunt) ->
           "source/Base.js"
           "source/Base.Class.js"
           "source/Base.View.js"
+          "source/Base.Set.js"
           "source/Base.Store.js"
         ]
       nodeps:
@@ -40,6 +42,7 @@ module.exports = (grunt) ->
           "source/Base.js"
           "source/Base.Class.js"
           "source/Base.View.js"
+          "source/Base.Set.js"
           "source/Base.Store.js"
         ]
 
