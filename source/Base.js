@@ -11,7 +11,7 @@ let Base = class {
    */
   constructor(configuration) {
     // Framework version - need to a find a better way to implement and update this
-    this.BASE_VERSION = "0.0.1";
+    this.BASE_VERSION = "0.0.2";
 
     // Add all configuration members and methods to instance
     if (typeof configuration === "object") {
