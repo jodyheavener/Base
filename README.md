@@ -1,4 +1,4 @@
-# Base Framework
+# Base
 
 ### Ideology
 
@@ -25,13 +25,11 @@ In order to listen to Base.Set dataset changes I'm taking a note from ES7 and us
 * This class does not need to be instantiated to use the framework; instead, it keeps a collection of internal helper methods located at `Base._`.
 * Perhaps in the future this class could be used for global values, caching, or versioning.
 
-**Configuration**
+**Methods & Members**
 
-This class has no required or otherwise used configuration parameters.
+##### constructor
 
-Returns `Base` | The class instance
-
-**Methods**
+_Returns_ `Base` | The class instance
 
 ##### _.dataRoute
 
@@ -49,7 +47,7 @@ Instantiated DOMParser; used for template string parsing in Views
 
 All browser DOM events; used for determining if event name is DOM event or custom event when delegating events in Base.Class
 
-Returns `Array` | List of browser DOM events
+_Returns_ `Array` | List of browser DOM events
 
 ##### _.forElements
 
@@ -58,3 +56,47 @@ Allows us to execute an HTMLElement's method on one element or a Nodelist
 `String|Array` | `elements` | _Required_ - Elements to execute the function on
 
 `Function` | `execute` | _Required_ - Function to execute on the elements
+
+### Base.Class
+
+`Base.Class` is the core class that contains the framework's sub-classes.
+
+**Methods & Members**
+
+##### constructor
+
+`Object` | `events` | Events to delegate within the instance
+
+`Method` | `initialize` | Method to call once instance is set up
+
+`Any` | `*` | Other members/methods to be bound to the instance
+
+_Returns_ `Base.Class` | The class instance
+
+##### delegateEvents
+
+Parses this.events and delegates events across this and any assigned instances
+
+##### undelegateEvents
+
+Parses this.events and undelegates events across this and any assigned instances
+
+##### trigger
+
+Triggers a named event on the instance or its element
+
+`String` | `name` | _Required_ - Event to trigger
+
+`Object` | `data` | Data to pass to the method
+
+_Note:_ If no data is being sent to the executed method, the parameters object can just be a string equal to the event name
+
+##### hasElement
+
+Checks if `this.element` exists and is and instance of `HTMLElement`
+
+_Returns_ `Boolean` | Does the instance have a valid HTMLElement?
+
+##### instanceEvents
+
+Internal reference to the events bound to the instance
