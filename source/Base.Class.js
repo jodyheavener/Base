@@ -2,190 +2,167 @@ Base.Class = class {
 
   /**
    * Constructor for setting up Base.Class instance
-   * @param    *  {Object}    configuration  Class configuration
-   *              {Object}    ^.events       Events for delegation to the event emitter
-   *              {Function}  ^.initialize   Init method called after class has been super'd
-   *              {Any}       ^.*            Other members/methods to be bound to the instance
-   * @returns     {Object}                   The class instance
+   * This class is meant to be extended in to all classes
+   * @param    *  {Object}      configuration  Instance configuration
+   *              {Object}      ^.events       Events to delegate within the instance
+   *              {Function}    ^.initialize   Method to call once instance is set up.
+   *                                           Must be called from extending instance.
+   *              {Any}         ^.*            Other members/methods to be bound to the instance
+   * @returns     {Base.Class}                 The class instance
    */
   constructor(configuration) {
-    // Parameter check
-    if (typeof configuration !== "object")
-      console.error("Base.Class.constructor `configuration` is required and must be of type Object");
-    if (configuration.events != null && typeof configuration.events !== "object")
-      console.error("Base.Class.constructor `configuration.events` must be of type Object");
-    if (configuration.initialize != null && typeof configuration.initialize !== "function")
-      console.error("Base.Class.constructor `configuration.initialize` must be of type Function");
-
-    // Add all configuration options to instance
+    // Add all configuration members and methods to instance
     Object.keys(configuration).forEach(key => {
       this[key] = configuration[key];
     });
+  };
 
-    // If this.element isn't set then we need to create a jQuery
-    // object that can act as an event emitter
-    // this.element should be set in a View instance
-    if (this.element == null) {
-      this.emitter = $({});
-    // But if it is set, add it to a jQuery object so it can be
-    // the event receiver
+};
+
+/**
+ * Internal reference to the events bound to the instance
+ * @note I don't think this is a great idea, since two events with the same
+ *       name will cancel each other out. Fix this!
+ */
+Base.Class.prototype.instanceEvents = {};
+
+/**
+ * Internal reference to the events bound to the instance
+ * @returns  {Boolean}  Does instance have a valid HTMLElement?
+ */
+Base.Class.prototype.hasElement = function() {
+  return this.element && this.element instanceof HTMLElement;
+};
+
+/**
+ * Parses this.events and delegates events across this and any assigned instances
+ * @note Although managed here, this method needs to be called by the extending
+ *       instance so it can delegate to the most up to date event element (Views)
+ */
+Base.Class.prototype.delegateEvents = function() {
+  // Bail if no events
+  if (!this.events) return;
+
+  // Iterate through this.events
+  Object.keys(this.events).forEach(caller => {
+    let eventName, element, method, assignee, selector, instance;
+
+    eventName = caller.substr(0, caller.indexOf(" "));
+    element   = this.element;
+    method    = this.events[caller];
+    assignee  = this.events[caller].substr(0, this.events[caller].indexOf(" "));
+
+    // Find out if the event contains a selector. If it does, reasign the event element
+    // to a child of the instance element
+    if (eventName.length) {
+      selector = caller.substr(caller.indexOf(" ") + 1);
+      element  = element.querySelectorAll(caller.substr(caller.indexOf(" ") + 1));
     } else {
-      this.element = $(this.element);
-    }
+      eventName = caller;
+    };
 
-    // Use the this.events object to parse delegate events to
-    // the event emitter
-    if (this.events != null) {
-      Object.keys(this.events).forEach(caller => {
-        this.addEvent(caller);
+    // Find out if the event method should executed from the current instance,
+    // or assigned to a different instances (which is a member of the current one)
+    instance = this;
+    if (assignee.length) {
+      method = this.events[caller].substr(0, this.events[caller].indexOf(" "));
+      instance = this[this.events[caller].substr(this.events[caller].indexOf(" ") + 1)];
+    };
+
+    // If we have a valid instance element and the event name is found within
+    // the array of DOM events, bind that that event to the element
+    if (this.hasElement && Base.prototype._.domEvents.indexOf("on" + eventName) !== -1) {
+      Base.prototype._.forElements.call(this, {
+        elements: element,
+        execute: (element) => {
+          element.addEventListener(eventName, (event => {
+            instance[method].apply(instance, [event, event.detail]);
+          }));
+        }
       });
-    }
-
-    // At the very least, if no events were added, create an empty events member
-    // so we can create new ones in the future
-    if (this.events == null)
-      this.events = {};
-
-    // This class will always be super'd, and its parent can optionally have an
-    // initialize method to be called after it has been super'd
-    if (this.initialize != null)
-      this.initialize.call(this);
-  }
-
-  /**
-   * Handles parsing and delegating of incoming events
-   * @param    *  {String}  caller  Event and optional child selector to create new event with
-   * @returns     {Void}
-   */
-  addEvent(caller) {
-    // Parameter check
-    if (typeof caller !== "string")
-      console.error("Base.Class.addEvent `caller` is required and must be of type String");
-
-    let parameters = {};
-    let callback = this.events[caller];
-    let assignee = callback.substr(callback.indexOf(" ") + 1);
-
-    // Check if the callback contains a callback
-    // Set parameter.callback as text node before first space in case it does
-    parameters.callback = callback.substr(0, callback.indexOf(" "));
-
-    if (parameters.callback.length && typeof this[assignee] !== "object") {
-      console.error("Base.Class.addEvent \"" + caller + "\" event has unknown assignee \"" + assignee + "\".");
-    // If it does, add it as a parameter.assignee
-    } else if (parameters.callback.length && typeof this[assignee] === "object") {
-      parameters.assignee = this[assignee];
-    // If not, reset parameter.callback to full callback value
+    // If the event is not in the list of DOM elements, the event should be bound to
+    // the instance and can be called with this.trigger()
     } else {
-      parameters.callback = callback;
-    }
+      this.instanceEvents[eventName] = instance[method];
+    };
+  });
+};
 
-    // Check if the caller contains a selector
-    // Set parameter.name as text node before first space in case it does
-    parameters.name = caller.substr(0, caller.indexOf(" "));
+/**
+ * Parses this.events and undelegates events across this and any assigned instances
+ * @see Base.Class.delegateEvents, but take not of comments within this method
+ */
+Base.Class.prototype.undelegateEvents = function(){
+  if (!this.events) return;
 
-    // If it does, add it as a parameter.selector
-    if (parameters.name.length && this.element != null) {
-      parameters.selector = caller.substr(caller.indexOf(" ") + 1);
-    // If not, reset parameter.name to full caller value
+  Object.keys(this.events).forEach(caller => {
+    let eventName, element, method, assignee, selector, instance;
+
+    eventName = caller.substr(0, caller.indexOf(" "));
+    element   = this.element;
+    method    = this.events[caller];
+    assignee  = this.events[caller].substr(0, this.events[caller].indexOf(" "));
+
+    if (eventName.length) {
+      selector = caller.substr(caller.indexOf(" ") + 1);
+      element  = element.querySelectorAll(caller.substr(caller.indexOf(" ") + 1));
     } else {
-      parameters.name = caller;
-    }
+      eventName = caller;
+    };
 
-    // Send the event and its parameters to the on() method
-    if (parameters.assignee || typeof this[parameters.callback] === "function")
-      this.on(parameters);
-  }
+    instance = this;
+    if (assignee.length) {
+      method = this.events[caller].substr(0, this.events[caller].indexOf(" "));
+      instance = this[this.events[caller].substr(this.events[caller].indexOf(" ") + 1)];
+    };
 
-  /**
-   * Assigns events to the instance's event emitter using jQuery's on()
-   * @param    *  {Object}  parameters  Event parameters
-   *           *  {String}  ^.name      Event to assign to the emitter
-   *              {String}  ^.selector  Child selector, if emitter is an element
-   *              {Object}  ^.assignee  Instance to call method from
-   *           *  {String}  ^.callback  Callback to be executed when event is emitted
-   * @returns     {Void}
-   */
-  on(parameters) {
-    // Parameter check
-    if (typeof parameters !== "object")
-      console.error("Base.Class.on `parameters` is required and must be of type Object");
-    if (typeof parameters.name !== "string")
-      console.error("Base.Class.on `parameters.name` is required and must be of type String");
-    if (parameters.selector != null && typeof parameters.selector !== "string")
-      console.error("Base.Class.on `parameters.selector` must be of type String");
-    if (parameters.assignee != null && typeof parameters.assignee !== "object")
-      console.error("Base.Class.on `parameters.assignee` must be of type Object");
-    if (typeof parameters.callback !== "string")
-      console.error("Base.Class.on `parameters.callback` is required and must be of type String");
+    if (this.hasElement && Base.prototype._.domEvents.indexOf("on" + eventName) !== -1) {
+      Base.prototype._.forElements.call(this, {
+        elements: element,
+        execute: (element) => {
+          // Using removeEventListener instead of addEventListener
+          element.removeEventListener(eventName, (event => {
+            instance[method].apply(instance, [event, event.detail]);
+          }));
+        }
+      });
+    } else {
+      // Nullify the event name within this.instanceEvents so it cant be triggered
+      this.instanceEvents[eventName] = null;
+    };
+  });
+};
 
-    // Determine which emitter to assign event to
-    let emitter = this.element || this.emitter;
+/**
+ * Triggers a named event on the instance or its element
+ * @param    *  {Object|String}  parameters  Function parameters or event name
+ *              {String}         ^.name      Event to trigger
+ *              {Object}         ^.data      Data to pass to the method
+ * @note        If no data is being sent to the executed method, parameters can
+ *              just be a string equal to the event name
+ */
+Base.Class.prototype.trigger = function(parameters){
+  if (!this.events) return;
 
-    // Determine which instance to call event from
-    let instance = parameters.assignee || this;
+  let eventName = parameters.name || parameters;
 
-    // Use jQuery on() to assign callback to the given event, passing in
-    // the designated instance
-    emitter.on(parameters.name, parameters.selector, function(event, params){
-      instance[parameters.callback].apply(instance, [params]);
-    });
-  }
+  // If we have a valid instance element and the event name is found within
+  // the array of DOM events, emit the event as a CustomEvent
+  if (this.hasElement && Base.prototype._.domEvents.indexOf("on" + eventName) !== -1) {
+    let event = undefined;
 
-  /**
-   * Removes events from the instance's event emitter using jQuery's off()
-   * @param    *  {Object}    parameters  Event parameters
-   *           *  {String}    ^.name      Event to remove from the emitter
-   *              {String}    ^.selector  Child selector, if emitter was an element
-   *              {Object}    ^.assignee  Instance method was called from
-   *           *  {Function}  ^.callback  Callback executed when event was emitted
-   * @returns     {Void}
-   */
-  off(parameters) {
-    // Parameter check
-    if (typeof parameters !== "object")
-      console.error("Base.Class.off `parameters` is required and must be of type Object");
-    if (typeof parameters.name !== "string")
-      console.error("Base.Class.off `parameters.name` is required and must be of type String");
-    if (parameters.selector != null && typeof parameters.selector !== "string")
-      console.error("Base.Class.off `parameters.selector` must be of type String");
-    if (parameters.assignee != null && typeof parameters.assignee !== "object")
-      console.error("Base.Class.off `parameters.assignee` must be of type Object");
-    if (typeof parameters.callback !== "string")
-      console.error("Base.Class.off `parameters.callback` is required and must be of type String");
+    // Support cross-browser CustomEvents
+    if (window.CustomEvent) {
+      event = new CustomEvent(eventName, { detail: parameters.data });
+    } else {
+      event = document.createEvent("CustomEvent");
+      event.initCustomEvent(eventName, true, true, parameters.data);
+    };
 
-    // Determine which emitter to remove event from
-    let emitter = this.element || this.emitter;
-
-    // Determine which instance the event was called from
-    let instance = this[parameters.assignee] || this;
-
-    // Use jQuery on() to assign callback to the given event, passing in
-    // the class's instance
-    emitter.on(parameters.name, parameters.selector, function(){
-      instance[parameters.callback].call(instance);
-    });
-  }
-
-
-  /**
-   * Triggers an event from the instance's event emitter
-   * @param    *  {String}  eventName        Name of event to trigger
-   * @param       {Array}   extraParameters  Any extra parameters to send from the trigger
-   * @returns     {Void}
-   */
-  trigger(eventName, extraParameters) {
-    // Parameter check
-    if (typeof eventName !== "string")
-      console.error("Base.Class.trigger `eventName` is required and must be of type String");
-    if (extraParameters != null && typeof extraParameters !== "object")
-      console.error("Base.Class.trigger `extraParameters` must be of type Object");
-
-    // Determine which emitter to trigger event on
-    let emitter = this.element || this.emitter;
-
-    // Trigger the event, emitting it
-    emitter.trigger(eventName, extraParameters);
-  }
-
-}
+    this.element.dispatchEvent(event);
+  // If the event is not in the list of DOM elements, the method within
+  // this.instanceEvents by event name is called
+  } else {
+    this.instanceEvents[eventName].call(this, parameters.data);
+  };
+};

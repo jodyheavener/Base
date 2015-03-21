@@ -1,137 +1,128 @@
+Base.prototype.views = {};
+
 Base.View = class extends Base.Class {
 
   /**
    * Constructor for setting up Base.View instance
-   * @super       Base.Class
-   * @param    *  {Object}         configuration  Instance configuration
-   *           *  {String|Object}  ^.element      Selector passed to jQuery instance
-   *              {String|Number}  ^.id           Identifier assigned to the view; if left
-   *                                              undefined, will default to index position
+   * @param    *  {Object}           configuration  Instance configuration
+   *           *  {HTMLElement}      ^.element      The View's element
+   *                                                Only required if ^.template is unset
+   *              {String|Function}  ^.template     Template to be parsed and returned in
+   *                                                this.render()
+   *              {String|Number}    ^.id           Set identifier. If left unset will default
+   *                                                to stacking order of Base.views
+   * @returns     {Base.View}                       The class instance
    */
   constructor(configuration) {
-    // Parameter check
-    if (typeof configuration !== "object")
-      console.error("Base.View.constructor `configuration` is required and must be of type Object");
-    if (typeof configuration.element !== "string" && typeof configuration.element !== "object")
-      console.error("Base.View.constructor `configuration.element` must be of type String or Object");
-    if (configuration.id != null && typeof configuration.id !== "string" && typeof configuration.id !== "number")
-      console.error("Base.View.constructor `configuration.id` must be of type String or Number");
-
-    // Super BaseClass constructor
     super.constructor(configuration);
 
-    // Set up the View's indentifier; if one was not set, use the View's
-    // index position in the Base.views object
-    this.id = this.id || Object.keys(Base.views).length + 1;
+    // Indentify and add set to Base.views
+    this.id = this.id || Object.keys(Base.prototype.views).length + 1;
+    Base.prototype.views[this.id] = this;
 
-    // Attach the View identifier to its element
-    this.element.attr("data-view", this.id);
+    // Only running this.setupView() is this.element is present, because
+    // if it's not and this.template is set, running this.render() will
+    // also run this.setupView()
+    if (this.element)
+      this.setupView();
+  };
 
-    // Add the View to the Base.views object
-    Base.views[this.id] = this;
-  }
+};
 
-  /**
-   * Destroys the current View instance
-   * @param       {Object|String}  parameters    Parameters to destroy view
-   *              {Boolean}        ^.element     Should destroy also remove the element?
-   *              {String}         ^.transition  Class name to be applied for when a transition is
-   *                                             desired before removing an element.
-   *                                             Requires ^.element parameter to be true.
-   */
-  destroy(parameters) {
-    // Parameter check
-    if (parameters != null && typeof parameters !== "object" && typeof parameters !== "string")
-      console.error("Base.View.destroy `parameters` must be of type Object");
-    if (parameters.element != null && typeof parameters.element !== "boolean")
-      console.error("Base.View.destroy `parameters.element` must be of type Boolean");
-    if (parameters.transition != null && typeof parameters.transition !== "String")
-      console.error("Base.View.destroy `parameters.transition` must be of type String");
+/**
+ * Sets up the view for usage, including setting the ID attributes
+ * delegating events, and initializing
+ */
+Base.View.prototype.setupView = function() {
+  // Add identifier to this.element in the DOM
+  this.element.setAttribute("data-view", this.id);
 
-    let
-        // removeView
-        // Conditionally removes the data-view attribute from the View's element
-        // Removes the View from the Base.views object
-        //
-        removeView = function() {
-          // If the element hasn't been removed, remove its data-view attribute
-          if (this.element != null)
-            this.element.removeAttr("data-view");
+  // Run event delegation
+  this.delegateEvents();
 
-          // Remove the View from the Base.views object
-          delete Base.views[this.id];
-        },
+  if (this.initialize)
+    this.initialize();
+};
 
-        // removeElement
-        // Remove the View's element from the DOM and resets this.element
-        //
-        removeElement = function(callback) {
-          // Remove the View's element from the DOM
-          this.element.remove();
+/**
+ * Renders and returns the compiled template
+ * @param    *  {Object}           parameters  Function parameters
+ *              {String|Function}  ^.template  Template to be parsed and returned.
+ *                                             If left unset will default to this.template
+ *              {Object}           ^.data      Data to be passed to the template, if a function
+ *              {Function}         ^.callback  Function to be executed once render is complete
+ * @returns     {HTMLElement}                  The newly created this.element
+ */
+Base.View.prototype.render = function(parameters) {
+  let parsedHTML, template;
 
-          // Reset this.element
-          this.element = undefined;
-
-          // If a callback is provided, execute it
-          if (callback != null)
-            callback.call(this);
-        }
-
-    // If paremeters.element is truthy, we need to first remove the View's
-    // element from the DOM before removing the View itself
-    if (parameters != null && parameters.element === true) {
-      // If parameters.transition is set, we need to apply the string as a class
-      // to the View's element (with the assumption it will trigger a
-      // transition), and then wait for a transitionend event to fire before
-      // removing the View's element and the View
-      if (parameters.transition) {
-        // Set up a transitionend event handler
-        this.on({
-          name: "transitionend",
-          callback: function(){
-            removeElement.apply(this, [function(){
-              removeView.call(this);
-            }]);
-          }
-        });
-
-        // Then apply the class to trigger the transitionend event
-        this.element.addClass(parameters.transition);
-      } else {
-        // Otherwise, just remove the View's element and then remove the View
-        removeElement.apply(this, [function(){
-          removeView.call(this);
-        }]);
-      }
-    // Otherwise, just remove the View
+  // If a template string or function is specified, use it
+  // checking whether or not execute it and pass data to it
+  if (parameters.template) {
+    if (typeof parameters.template === "function") {
+      template = parameters.template(parameters.data);
     } else {
-      removeView.call(this);
-    };
+      template = parameters.template;
+    }
+  // If not, use the instance's template
+  } else {
+    if (typeof this.template === "function") {
+      template = this.template(parameters.data);
+    } else {
+      template = this.template;
+    }
   }
 
-}
+  // Use a DOM Parser to create actualy HTML elements from the template string
+  // Extracting the top-most element and assigning it as the view's new element
+  parsedHTML = Base.prototype._.domParser.parseFromString(this.template, "text/xml");
+  this.element = parsedHTML.children[0];
 
-// Give the Base class a views object to store references
-// to all views on the page
-Base.views = {};
+  // Set up our view and execute the callback if one is supplied
+  this.setupView();
+  if (parameters.callback)
+    parameters.callback();
 
-/**
- * Extends the Base.View class as a method of the Base class
- * @param    *  {Object}   configuration  @see Base.View.constructor
- * @returns     {Object}                  The Base.View instance
- */
-Base.prototype.addView = function(configuration) {
-  return new Base.View(configuration);
-}
+  return this.element;
+};
 
 /**
- * Executes the destroy method of a Base.View instance, by View ID
- * @param    *  {String|Object}  parameters
- *              {String}                     Identifier of the View to destroy
- *              {Object}                     @see Base.View.constructor
- * @returns     {String}                     ID of the View destroyed
+ * Removes the view's instance, optionally removing the element from the DOM
+ * @param    *  {Object|Boolean}   parameters       Function parameters or bool to remove the view element
+ *              {Boolean}          ^.removeElement  If the view's element should also be removed
  */
-Base.prototype.destroyView = function(parameters) {
-  Base.views[parameters.id || parameters].destroy(parameters);
-  return parameters.id || parameters;
+Base.View.prototype.destroy = function(parameters){
+  let removeView, removeElement;
+
+  // Function to remove the view instance, it's association with the element,
+  // and any events delegated to it
+  removeView = function() {
+    if (this.element != null){
+      this.element.removeAttribute("data-view");
+    };
+
+    this.undelegateEvents();
+    Base.prototype.views[this.id] = null;
+  };
+
+  // Function to remove the element from the DOM
+  // @param {Function} executed after the element has been removed
+  removeElement = function(callback) {
+    this.element.parentNode.removeChild(this.element);
+    this.element = undefined;
+
+    if (callback != null)
+      callback.call(this);
+  };
+
+  // If we're removing the view's element, call removeElement and specify
+  // removeView as its callback function
+  if (parameters != null && (parameters === true || parameters.removeElement === true)) {
+    removeElement.apply(this, [function(){
+      removeView.call(this);
+    }]);
+  // If not, just run removeView
+  } else {
+    removeView.call(this);
+  };
 }
