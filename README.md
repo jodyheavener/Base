@@ -238,3 +238,51 @@ var myStore = new Base.Store({
 
 });
 ```
+
+### Base.Set
+
+`Base.Set` is designed to contain a set of data that adheres to a given schema / structure.
+
+**Notes:**
+
+* In the future I would like this class to inherit ES6's Set type
+
+**Methods and members:**
+
+##### constructor
+
+`Object` | `schema` | _Required_ Schema to adhere dataset to
+
+`String|Number` | `id` | Set identifier. If left unset will default to stacking order of Base.sets
+
+_Returns_ `Base.Set` | The class instance
+
+##### typeTests
+
+Object containing collection of functions to test against named types
+
+##### addType
+
+Tests a value for type validation
+
+`String|Function` | `type` | _Required_ Either a named type within this.typeTests, or a Function to test the value against
+
+`Any` | `value` | _Required_ Value to use in the type test
+
+_Returns_ `Boolean` | If the value is of the type
+
+##### add
+
+Attempts to add a value to the this.data dataset, adhering to this.schema
+
+`Any` | `data` | _Required_ Data to attempt to add to the dataset
+
+_Note:_ The parameters object can also be any value to set `data`
+
+##### get
+
+Get a value from the dataset
+
+`String` | `route` | _Required_ dataRoute formatted string
+
+_Returns_ `Any` | Returned value from the dataset
