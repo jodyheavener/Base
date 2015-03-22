@@ -1,8 +1,85 @@
 # Base
 
-### Ideology
+Overview
 
-One of the core values with Base is that each class and method can be instantiated with an object, meaning there is no order of declaration for arguments, and there is no limit to the number of arguments that can be passed in.
+* About Base
+* Changelog
+
+Technical additions
+
+* Base.Class Events
+* Base.Set Schemas
+* dataRoute Format
+* Object.observe
+
+Classes
+
+* Base
+* Base.Class
+* Base.View
+* Base.Set
+* Base.Store
+
+### About Base
+
+I built this "framework" out of personal desire to learn more about Javascript. I wanted to 1) be able to build a complete framework that I could tailor to my needs, 2) get a good start on exploring ECMAScript 6, and 3) build something without any dependencies* (such as jQuery).
+
+Everything about this framework is heavily inspired by Backbone, such as Views and event delegation, mainly because I'm most familiar with it. It isn't as flexible and lacks certain functionality, however everything is built from the ground up, has no dependencies (like jQuery or Underscore), and has a few additions that make it pretty useful. That's what matters most to me.
+
+One of the key things about Base is that each class and method can be instantiated with an object, meaning there is no order of declaration for arguments, and there is no limit to the number of arguments/parameters that can be passed in.
+
+**I need your help.** I want you to tell me what I did wrong, what can be improved, and what could be added to make this a little more stable and well-rounded. Feel free to open an issue if you'd like to send me some feedback.
+
+_\* Technically I'm depending on Massimo Artizzu's Object.observe script, but it's a polyfill so I don't think that counts ;)_
+
+### Changelog
+
+March 22nd 2015 - `v0.0.2` - Initial beta release
+
+### Base.Class Events
+
+`Base.Class` is extended in to all other Base subclasses, meaning events are available to all instances. Events are constructed a lot of like Backbone's events, where custom events are available across all instances, and DOM events are available to `Base.View` instances:
+
+```javascript
+events: {
+    "click": "somethingClicked",
+    "hover .child-element": "childElementHovered",
+    "custom-event": "customEventTriggered"
+}
+```
+There is one addition to events that this framework adds; I'm calling it **Method assignment**. By adding another Base instance to your current instance as a member and then naming that member in your event method after a space, the event fired will trigger the method in that assigned instance.
+
+```javascript
+var otherView = myApp.addView({
+  element: document.body.querySelector(".my-element")[0],
+
+  doSomething: function() {
+    console.log("Doing something ok!");
+  }
+});
+
+var myView = new View({
+
+  otherView: otherView,
+
+  // In this case, doSomething is being assigned to otherView
+  // and is being triggered by custom-event
+  events: {
+    "custom-event": "doSomething otherView"
+  }
+
+});
+```
+
+### Base.Set Schemas
+
+Schemas in Base are intended to enforce specific structures within datasets. It allows you to search through an object, looking for specific keys and passing their values to a test to see if they match a specific type.
+
+`type` is a `String` that allows you to pass in a named type. By default `string`, `number`, `array`, `object`, `url`, and `timestamp` are built-in types. Alternatively, `type` can be a `Function` that accepts a value and returns a `Boolean`.
+
+`use` is an `Array` that tells the schema where to look in the passed in object to find the data, using the dataRoute format. If the first element in the array doesn't return a value of the specified type, it will go to the next element in the array. `use` can also be a `String` if only one dataRoute is being specified.
+
+`fail` is a `String` or `Function` that assigns its returned value to the name of the schema item key. It does not test for type.
 
 ### dataRoute format
 
@@ -18,7 +95,7 @@ In order to listen to Base.Set dataset changes I'm taking a note from ES7 and us
 
 **Example usage:**
 
-```
+```javascript
 Object.observe(myObject, function(changeEvents){
   changeEvents.forEach(function(changeEvent){
     ...
@@ -151,7 +228,7 @@ _Note:_ The parameters object can also be a boolean to set `removeElement`
 
 Basic example using `element`.
 
-```
+```javascript
 var myView = new Base.View({
 
   element: document.body,
@@ -168,7 +245,7 @@ var myView = new Base.View({
 ```
 Basic example using `template`.
 
-```
+```javascript
 var myView = new Base.View({
 
   template: "<div class=\"my-element\"><p>Hey</p></div>",
@@ -185,58 +262,6 @@ var myView = new Base.View({
 
 // myView.element will be .my-element after render
 document.body.appendChild(myView.render());
-```
-
-### Base.Store
-
-`Base.Store` is designed to manage a collection of Base.Set views.
-
-**Notes:**
-
-* This class does very little at the moment. In the future I would like implement data fetching and data management methods.
-
-**Methods and members:**
-
-##### constructor
-
-`Base.Set` | `*` | A Base.Set instance to attach to the store
-
-_Returns_ `Base.Store` | The class instance
-
-##### observeSets
-
-Performs `Object.observe` on all datasets in the store
-
-##### changeObservation
-
-Fired when a dataset change is observed, triggering the change type's event and passing the change data and the changed Base.Set instance to the executed method
-
-**Example usage:**
-
-Example using the data observation "add" event and event method assignment.
-
-```
-var testView = myApp.addView({
-  element: document.body.querySelector(".my-element")[0],
-
-  somethingAdded: function(changeEvent) {
-    console.log("Something was added!", changeEvent);
-  }
-});
-
-var myStore = new Base.Store({
-
-  // Base.View added as a member of this instance
-  myView: myView,
-
-  // Base.Set added as a member of this instance
-  myDataSet: myDataSet,
-
-  events: {
-    "add": "somethingAdded myView"
-  }
-
-});
 ```
 
 ### Base.Set
@@ -286,3 +311,102 @@ Get a value from the dataset
 `String` | `route` | _Required_ dataRoute formatted string
 
 _Returns_ `Any` | Returned value from the dataset
+
+**Example usage:**
+
+Example adding data to a set while adhering to a schema
+
+```javascript
+var testPostData = {
+  postName: "This is a blog post!",
+  postUrl: "http://myblog.com/this-is-a-blog-post",
+  shortUrl: "http://myb.log/123",
+  postedOn: 123456789,
+  tags: ["fancy", "writing"],
+  images: [
+    "http://myblog.com/images/2015/01/small",
+    "http://myblog.com/images/2015/01/medium",
+    "http://myblog.com/images/2015/01/large",
+    "http://myblog.com/images/2015/01/original"
+  ]
+};
+
+var postDataSet = new Base.Set({
+  schema: {
+    "title": {
+      type: "string",
+      use: "postName"
+    },
+    "url": {
+      type: "url",
+      use: ["shortUrl", "postUrl"]
+    },
+    "date": {
+      type: "timestamp",
+      use: "postedOn"
+    },
+    "tags": {
+      type: "array",
+      use: "tags"
+    },
+    "image": {
+      type: "object",
+      use: ["images:2", "images:3"]
+    }
+  }
+});
+
+postDataSet.add(testPostData);
+```
+
+### Base.Store
+
+`Base.Store` is designed to manage a collection of Base.Set views.
+
+**Notes:**
+
+* This class does very little at the moment. In the future I would like implement data fetching and data management methods.
+
+**Methods and members:**
+
+##### constructor
+
+`Base.Set` | `*` | A Base.Set instance to attach to the store
+
+_Returns_ `Base.Store` | The class instance
+
+##### observeSets
+
+Performs `Object.observe` on all datasets in the store
+
+##### changeObservation
+
+Fired when a dataset change is observed, triggering the change type's event and passing the change data and the changed Base.Set instance to the executed method
+
+**Example usage:**
+
+Example using the data observation "add" event and event method assignment.
+
+```javascript
+var testView = myApp.addView({
+  element: document.body.querySelector(".my-element")[0],
+
+  somethingAdded: function(changeEvent) {
+    console.log("Something was added!", changeEvent);
+  }
+});
+
+var myStore = new Base.Store({
+
+  // Base.View added as a member of this instance
+  myView: myView,
+
+  // Base.Set added as a member of this instance
+  myDataSet: myDataSet,
+
+  events: {
+    "add": "somethingAdded myView"
+  }
+
+});
+```

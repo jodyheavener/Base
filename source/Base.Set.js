@@ -121,7 +121,7 @@ Base.Set.prototype.add = function(parameters) {
   // @returns {Boolean} used to halt the test loop or execute the fail member
   addDataIfType = (name, use, type) => {
     let extractedData = Base.prototype._.dataRoute({target: data, route: use});
-    if (this.typeTests[type](extractedData)){
+    if (this.isType({ type: type, value: extractedData })){
       this.data[name] = extractedData;
       return true;
     } else {
