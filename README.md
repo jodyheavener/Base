@@ -186,3 +186,27 @@ var myView = new Base.View({
 // myView.element will be .my-element after render
 document.body.appendChild(myView.render());
 ```
+
+### Base.Store
+
+`Base.Store` is designed to manage a collection of Base.Set views.
+
+**Notes:**
+
+* This class does very little at the moment. In the future I would like implement data fetching and data management methods.
+
+**Methods and members:**
+
+##### constructor
+
+`Base.Set` | `*` | A Base.Set instance to attach to the store
+
+_Returns_ `Base.Store` | The class instance
+
+##### observeSets
+
+Performs `Object.observe` on all datasets in the store
+
+##### changeObservation
+
+Fired when a dataset change is observed, triggering the change type's event and passing the change data and the changed Base.Set instance to the executed method
