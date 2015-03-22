@@ -5,13 +5,6 @@ Overview
 * [About Base](#about-base)
 * [Changelog](#changelog)
 
-Technical additions
-
-* [Base.Class Events](#baseclass-events)
-* [Base.Set Schemas](#baseset-schemas)
-* [dataRoute Format](#dataroute-format)
-* [Object.observe](#objectobserve)
-
 Classes
 
 * [Base](#base-1)
@@ -19,6 +12,15 @@ Classes
 * [Base.View](#baseview)
 * [Base.Set](#baseset)
 * [Base.Store](#basestore)
+
+Technical additions
+
+* [Base.Class Events](#baseclass-events)
+* [Base.Set Schemas](#baseset-schemas)
+* [dataRoute Format](#dataroute-format)
+* [Object.observe](#objectobserve)
+
+A demo should be available "soon".
 
 ### About Base
 
@@ -35,73 +37,6 @@ _\* Technically I'm depending on Massimo Artizzu's Object.observe script, but it
 ### Changelog
 
 March 22nd 2015 - `v0.0.2` - Initial beta release
-
-### Base.Class Events
-
-`Base.Class` is extended in to all other Base subclasses, meaning events are available to all instances. Events are constructed a lot of like Backbone's events, where custom events are available across all instances, and DOM events are available to `Base.View` instances:
-
-```javascript
-events: {
-    "click": "somethingClicked",
-    "hover .child-element": "childElementHovered",
-    "custom-event": "customEventTriggered"
-}
-```
-There is one addition to events that this framework adds; I'm calling it **Method assignment**. By adding another Base instance to your current instance as a member and then naming that member in your event method after a space, the event fired will trigger the method in that assigned instance.
-
-```javascript
-var otherView = myApp.addView({
-  element: document.body.querySelector(".my-element")[0],
-
-  doSomething: function() {
-    console.log("Doing something ok!");
-  }
-});
-
-var myView = new View({
-
-  otherView: otherView,
-
-  // In this case, doSomething is being assigned to otherView
-  // and is being triggered by custom-event
-  events: {
-    "custom-event": "doSomething otherView"
-  }
-
-});
-```
-
-### Base.Set Schemas
-
-Schemas in Base are intended to enforce specific structures within datasets. It allows you to search through an object, looking for specific keys and passing their values to a test to see if they match a specific type.
-
-`type` is a `String` that allows you to pass in a named type. By default `string`, `number`, `array`, `object`, `url`, and `timestamp` are built-in types. Alternatively, `type` can be a `Function` that accepts a value and returns a `Boolean`.
-
-`use` is an `Array` that tells the schema where to look in the passed in object to find the data, using the dataRoute format. If the first element in the array doesn't return a value of the specified type, it will go to the next element in the array. `use` can also be a `String` if only one dataRoute is being specified.
-
-`fail` is a `String` or `Function` that assigns its returned value to the name of the schema item key. It does not test for type.
-
-### dataRoute format
-
-Base introduces a new way of traversing a Javascript object by using a simple string format. It can be used with Objects and Arrays and is used in various areas throughout Base. The primary idea is to use _spaces_ to access a value, and _colons_ to access indexes.
-
-That means `"traversing"` becomes `["traversing"]`.
-
-And `"traversing:3 something"` becomes `["traversing"][3]["something"]`.
-
-### Object.observe
-
-In order to listen to Base.Set dataset changes I'm taking a note from ES7 and using the fantastic [Object.observe polyfill](https://github.com/MaxArt2501/object-observe) by Massimo Artizzu. It's really great. As a [wonderful] side effect, `Object.observe` is available globally. Use it!
-
-**Example usage:**
-
-```javascript
-Object.observe(myObject, function(changeEvents){
-  changeEvents.forEach(function(changeEvent){
-    ...
-  });
-});
-```
 
 ### Base
 
@@ -408,5 +343,74 @@ var myStore = new Base.Store({
     "add": "somethingAdded myView"
   }
 
+});
+```
+
+### Base.Class Events
+
+`Base.Class` is extended in to all other Base subclasses, meaning events are available to all instances. Events are constructed a lot of like Backbone's events, where custom events are available across all instances, and DOM events are available to `Base.View` instances:
+
+```javascript
+events: {
+    "click": "somethingClicked",
+    "hover .child-element": "childElementHovered",
+    "custom-event": "customEventTriggered"
+}
+```
+There is one addition to events that this framework adds; I'm calling it **Method assignment**. By adding another Base instance to your current instance as a member and then naming that member in your event method after a space, the event fired will trigger the method in that assigned instance.
+
+```javascript
+var otherView = myApp.addView({
+  element: document.body.querySelector(".my-element")[0],
+
+  doSomething: function() {
+    console.log("Doing something ok!");
+  }
+});
+
+var myView = new View({
+
+  otherView: otherView,
+
+  // In this case, doSomething is being assigned to otherView
+  // and is being triggered by custom-event
+  events: {
+    "custom-event": "doSomething otherView"
+  }
+
+});
+```
+
+### Base.Set Schemas
+
+Schemas in Base are intended to enforce specific structures within datasets. It allows you to search through an object, looking for specific keys and passing their values to a test to see if they match a specific type.
+
+`type` is a `String` that allows you to pass in a named type. By default `string`, `number`, `array`, `object`, `url`, and `timestamp` are built-in types. Alternatively, `type` can be a `Function` that accepts a value and returns a `Boolean`.
+
+`use` is an `Array` that tells the schema where to look in the passed in object to find the data, using the dataRoute format. If the first element in the array doesn't return a value of the specified type, it will go to the next element in the array. `use` can also be a `String` if only one dataRoute is being specified.
+
+`fail` is a `String` or `Function` that assigns its returned value to the name of the schema item key. It does not test for type.
+
+_An example of a schema in use can be found at [Base.Set](#baseset)'s example._
+
+### dataRoute format
+
+Base introduces a new way of traversing a Javascript object by using a simple string format. It can be used with Objects and Arrays and is used in various areas throughout Base. The primary idea is to use _spaces_ to access a value, and _colons_ to access indexes.
+
+That means `"traversing"` becomes `["traversing"]`.
+
+And `"traversing:3 something"` becomes `["traversing"][3]["something"]`.
+
+### Object.observe
+
+In order to listen to Base.Set dataset changes I'm taking a note from ES7 and using the fantastic [Object.observe polyfill](https://github.com/MaxArt2501/object-observe) by Massimo Artizzu. It's really great. As a [wonderful] side effect, `Object.observe` is available globally. Use it!
+
+**Example usage:**
+
+```javascript
+Object.observe(myObject, function(changeEvents){
+  changeEvents.forEach(function(changeEvent){
+    ...
+  });
 });
 ```
