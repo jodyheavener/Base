@@ -2,23 +2,23 @@
 
 Overview
 
-* About Base
-* Changelog
+* [About Base](#about-base)
+* [Changelog](#changelog)
 
 Technical additions
 
-* Base.Class Events
-* Base.Set Schemas
-* dataRoute Format
-* Object.observe
+* [Base.Class Events](#baseclass-events)
+* [Base.Set Schemas](#baseset-schemas)
+* [dataRoute Format](#dataroute-format)
+* [Object.observe](#objectobserve)
 
 Classes
 
-* Base
-* Base.Class
-* Base.View
-* Base.Set
-* Base.Store
+* [Base](#base-1)
+* [Base.Class](#baseclass)
+* [Base.View](#baseview)
+* [Base.Set](#baseset)
+* [Base.Store](#basestore)
 
 ### About Base
 
