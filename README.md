@@ -210,3 +210,31 @@ Performs `Object.observe` on all datasets in the store
 ##### changeObservation
 
 Fired when a dataset change is observed, triggering the change type's event and passing the change data and the changed Base.Set instance to the executed method
+
+**Example usage:**
+
+Example using the data observation "add" event and event method assignment.
+
+```
+var testView = myApp.addView({
+  element: document.body.querySelector(".my-element")[0],
+
+  somethingAdded: function(changeEvent) {
+    console.log("Something was added!", changeEvent);
+  }
+});
+
+var myStore = new Base.Store({
+
+  // Base.View added as a member of this instance
+  myView: myView,
+
+  // Base.Set added as a member of this instance
+  myDataSet: myDataSet,
+
+  events: {
+    "add": "somethingAdded myView"
+  }
+
+});
+```
