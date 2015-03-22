@@ -16,16 +16,26 @@ And `"traversing:3 something"` becomes `["traversing"][3]["something"]`.
 
 In order to listen to Base.Set dataset changes I'm taking a note from ES7 and using the fantastic [Object.observe polyfill](https://github.com/MaxArt2501/object-observe) by Massimo Artizzu. It's really great. As a [wonderful] side effect, `Object.observe` is available globally. Use it!
 
+**Example usage:**
+
+```
+Object.observe(myObject, function(changeEvents){
+  changeEvents.forEach(function(changeEvent){
+    ...
+  });
+});
+```
+
 ### Base
 
 `Base` is the core class that contains the framework's sub-classes.
 
-**Notes**
+**Notes:**
 
 * This class does not need to be instantiated to use the framework; instead, it keeps a collection of internal helper methods located at `Base._`.
 * Perhaps in the future this class could be used for global values, caching, or versioning.
 
-**Methods & Members**
+**Methods and members:**
 
 ##### constructor
 
@@ -61,7 +71,7 @@ Allows us to execute an HTMLElement's method on one element or a Nodelist
 
 `Base.Class` is the core class that contains the framework's sub-classes.
 
-**Methods & Members**
+**Methods & Members:**
 
 ##### constructor
 
@@ -100,3 +110,79 @@ _Returns_ `Boolean` | Does the instance have a valid HTMLElement?
 ##### instanceEvents
 
 Internal reference to the events bound to the instance
+
+### Base.View
+
+`Base.View` is designed to handle a given element in the DOM.
+
+**Methods and members:**
+
+##### constructor
+
+`HTMLElement` | `element` | _Required_ - The View's element; Only required if `template` is unset
+
+`String|Function` | `template` | Template to be parsed and returned in `render()`
+
+`String|Number` | `id` | Set identifier. If left unset will default to stacking order of `Base.views`
+
+_Returns_ `Base.View` | The class instance
+
+##### setupView
+
+Sets up the view for usage, including setting the ID attribute, delegating events, and initializing
+
+##### render
+
+`String|Function` | `template` | Template to be parsed and returned. If left unset will default to this.template
+
+`Object` | `data` | Data to be passed to the template, if a function
+
+`Function` | `callback` | Function to be executed once render is complete
+
+_Returns_ `HTMLElement` | The newly created this.element
+
+##### destroy
+
+`Boolean` | `removeElement` | If the view's element should also be removed
+
+_Note:_ The parameters object can also be a boolean to set `removeElement`
+
+**Example usage:**
+
+Basic example using `element`.
+
+```
+var myView = new Base.View({
+
+  element: document.body,
+
+  events: {
+    "click": "pageClicked"
+  },
+
+  pageClicked: function() {
+    console.log("Page was clicked");
+  }
+
+});
+```
+Basic example using `template`.
+
+```
+var myView = new Base.View({
+
+  template: "<div class=\"my-element\"><p>Hey</p></div>",
+
+  events: {
+    "hover .some-element": "someElementHovered"
+  },
+
+  someElementHovered: function() {
+    console.log("Some element was hovered");
+  },
+
+});
+
+// myView.element will be .my-element after render
+document.body.appendChild(myView.render());
+```
